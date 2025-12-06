@@ -186,6 +186,6 @@ See the LICENSE file for details.
 
 For inquiries or collaborations:
 
-Email: stephen@example.com
+Email: stephenenowin233@gmail.com
 
-GitHub: https://github.com/stephenexerer
+GitHub: https://github.com/stephenOwino
