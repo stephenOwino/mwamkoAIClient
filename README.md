@@ -1,3 +1,4 @@
+<div align="center">
 🚨 MWAMKO AI – Emergency Response System
 
 MWAMKO AI is a real-time emergency-response and route-optimization system designed to help humanitarian teams identify and reach people affected by floods faster and more efficiently.
@@ -5,7 +6,9 @@ The system leverages AI-powered routing, real-time alerts, and role-based operat
 
 This repository contains the frontend application, built with React, Redux Toolkit, and Material UI (MUI).
 
+</div>
 ✨ Features
+
 🔐 User Authentication
 
 Secure login & sign-up using JWT
@@ -49,26 +52,23 @@ Follow the instructions below to run the project locally.
 
 ✔️ Prerequisites
 
-Before starting, ensure you have installed:
-
 Node.js ≥ 16
 
 npm ≥ 7
 
 📦 Installation & Setup
-1. Clone the repository
+# Clone the repository
 git clone https://github.com/your-username/mwamko-ai-client.git
 cd mwamko-ai-client
 
-2. Install dependencies
+# Install dependencies
 npm install
 
-3. Start the development server
+# Start the development server
 npm run dev
 
 
-Visit:
-👉 http://localhost:3000
+Visit: http://localhost:3000
 
 🗂️ Project Structure
 src/
@@ -81,33 +81,20 @@ src/
 └── utils/            # Shared utilities and helpers
 
 🧱 Key Components Overview
-Header.jsx
 
-Navigation bar with user profile, notifications, and role actions.
+Header.jsx – Navigation bar with user profile, notifications, and role actions
 
-DashboardPage.jsx
+DashboardPage.jsx – Main coordinator dashboard for viewing emergencies & user activity
 
-Main coordinator dashboard for viewing emergencies & user activity.
+AssignRoleDialog.jsx – Modal interface for assigning user roles
 
-AssignRoleDialog.jsx
+LoginPage.jsx – Handles user authentication with validation
 
-Modal interface for assigning user roles.
+PendingUsersPage.jsx – Approve, verify, and manage pending user accounts
 
-LoginPage.jsx
-
-Handles user authentication with validation.
-
-PendingUsersPage.jsx
-
-Approve, verify, and manage pending user accounts.
-
-InviteUserPage.jsx
-
-Allows coordinators to invite new responders or admins.
+InviteUserPage.jsx – Allows coordinators to invite new responders or admins
 
 🔄 State Management – Redux Toolkit
-
-MWAMKO AI uses Redux Toolkit slices for handling global app logic:
 
 authSlice
 
@@ -129,43 +116,27 @@ Manage user lists
 
 🎨 Styling – Material UI (MUI)
 
-The interface is styled using Material UI, featuring:
-
 Custom AppBar and themed UI elements
 
 Dialogs, Menus, Buttons styled with MUI
 
 Grid & Box layouts for responsiveness
 
-Dark/light compatibility (if added later)
+Dark/light compatibility (optional future feature)
 
 🔐 Authentication & Authorization
 
-Authentication is secured with JWT, validated through API routes.
+Authentication is secured with JWT, validated through API routes
 
-Auth Routes
 Route	Method	Description
 /login	POST	Authenticate existing users
 /register	POST	Create a new account
 
-Tokens are saved in localStorage and validated on each API call.
+Tokens are saved in localStorage and validated on each API call
 
 📸 Screenshots
-
-(Images will load once you upload them into the /assets folder.)
-
-<div align="center">
-🖼️ Image 1
-<img src="./assets/image1.png" width="800"/>
-🖼️ Image 2
-<img src="./assets/image2.png" width="800"/>
-🖼️ Image 3
-<img src="./assets/image3.png" width="800"/>
-🖼️ Image 4
-<img src="./assets/image4.png" width="800"/> </div>
+<div align="center"> <img src="./assets/image1.png" width="400"/> &nbsp;&nbsp; <img src="./assets/image2.png" width="400"/><br><br> <img src="./assets/image3.png" width="400"/> &nbsp;&nbsp; <img src="./assets/image4.png" width="400"/> </div>
 🤝 Contributing
-
-Contributions are welcome!
 
 Fork the repository
 
@@ -179,12 +150,11 @@ Please follow the existing coding style and commit message guidelines.
 
 📄 License
 
-Licensed under the MIT License.
-See the LICENSE file for details.
+This project is licensed under the MIT License.
+See the LICENSE
+ file for details.
 
 📬 Contact
-
-For inquiries or collaborations:
 
 Email: stephenenowin233@gmail.com
 
