@@ -1,27 +1,24 @@
-<div align="center">
-🚨 MWAMKO AI – Emergency Response System
+### MWAMKO AI – Emergency Response System
 
 MWAMKO AI is a real-time emergency-response and route-optimization system designed to help humanitarian teams identify and reach people affected by floods faster and more efficiently.
 The system leverages AI-powered routing, real-time alerts, and role-based operations to streamline emergency coordination.
 
 This repository contains the frontend application, built with React, Redux Toolkit, and Material UI (MUI).
 
-</div>
-✨ Features
-
-🔐 User Authentication
+### Features
+## User Authentication
 
 Secure login & sign-up using JWT
 
 Persistent login via localStorage
 
-🧩 Role Management
+## Role Management
 
 Dynamic assignment of roles (Admin, County Coordinator, etc.)
 
 Approval workflows for new users
 
-🕒 Pending Users Management
+## Pending Users Management
 
 Coordinators can approve users awaiting verification
 
@@ -52,23 +49,26 @@ Follow the instructions below to run the project locally.
 
 ✔️ Prerequisites
 
+Before starting, ensure you have installed:
+
 Node.js ≥ 16
 
 npm ≥ 7
 
 📦 Installation & Setup
-# Clone the repository
+1. Clone the repository
 git clone https://github.com/your-username/mwamko-ai-client.git
 cd mwamko-ai-client
 
-# Install dependencies
+2. Install dependencies
 npm install
 
-# Start the development server
+3. Start the development server
 npm run dev
 
 
-Visit: http://localhost:3000
+Visit:
+👉 http://localhost:5173
 
 🗂️ Project Structure
 src/
@@ -81,20 +81,33 @@ src/
 └── utils/            # Shared utilities and helpers
 
 🧱 Key Components Overview
+Header.jsx
 
-Header.jsx – Navigation bar with user profile, notifications, and role actions
+Navigation bar with user profile, notifications, and role actions.
 
-DashboardPage.jsx – Main coordinator dashboard for viewing emergencies & user activity
+DashboardPage.jsx
 
-AssignRoleDialog.jsx – Modal interface for assigning user roles
+Main coordinator dashboard for viewing emergencies & user activity.
 
-LoginPage.jsx – Handles user authentication with validation
+AssignRoleDialog.jsx
 
-PendingUsersPage.jsx – Approve, verify, and manage pending user accounts
+Modal interface for assigning user roles.
 
-InviteUserPage.jsx – Allows coordinators to invite new responders or admins
+LoginPage.jsx
+
+Handles user authentication with validation.
+
+PendingUsersPage.jsx
+
+Approve, verify, and manage pending user accounts.
+
+InviteUserPage.jsx
+
+Allows coordinators to invite new responders or admins.
 
 🔄 State Management – Redux Toolkit
+
+MWAMKO AI uses Redux Toolkit slices for handling global app logic:
 
 authSlice
 
@@ -114,7 +127,9 @@ Assign and update roles
 
 Manage user lists
 
-🎨 Styling – Material UI (MUI)
+### Styling – Material UI (MUI)
+
+The interface is styled using Material UI, featuring:
 
 Custom AppBar and themed UI elements
 
@@ -122,21 +137,35 @@ Dialogs, Menus, Buttons styled with MUI
 
 Grid & Box layouts for responsiveness
 
-Dark/light compatibility (optional future feature)
+Dark/light compatibility (if added later)
 
-🔐 Authentication & Authorization
+### Authentication & Authorization
 
-Authentication is secured with JWT, validated through API routes
+Authentication is secured with JWT, validated through API routes.
 
+Auth Routes
 Route	Method	Description
 /login	POST	Authenticate existing users
 /register	POST	Create a new account
 
-Tokens are saved in localStorage and validated on each API call
+Tokens are saved in localStorage and validated on each API call.
 
 📸 Screenshots
-<div align="center"> <img src="./assets/image1.png" width="400"/> &nbsp;&nbsp; <img src="./assets/image2.png" width="400"/><br><br> <img src="./assets/image3.png" width="400"/> &nbsp;&nbsp; <img src="./assets/image4.png" width="400"/> </div>
+
+(Images will load once you upload them into the /assets folder.)
+
+<div align="center">
+🖼️ Image 1
+<img src="./assets/image1.png" width="800"/>
+🖼️ Image 2
+<img src="./assets/image2.png" width="800"/>
+🖼️ Image 3
+<img src="./assets/image3.png" width="800"/>
+🖼️ Image 4
+<img src="./assets/image4.png" width="800"/> </div>
 🤝 Contributing
+
+Contributions are welcome!
 
 Fork the repository
 
@@ -148,13 +177,10 @@ Submit a pull request
 
 Please follow the existing coding style and commit message guidelines.
 
-📄 License
-
-This project is licensed under the MIT License.
-See the LICENSE
- file for details.
 
 📬 Contact
+
+For inquiries or collaborations:
 
 Email: stephenenowin233@gmail.com
 
