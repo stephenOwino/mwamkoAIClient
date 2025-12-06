@@ -153,17 +153,11 @@ Tokens are saved in localStorage and validated on each API call.
 📸 Screenshots
 
 (Images will load once you upload them into the /assets folder.)
+![Image 1](./src/assets/image1.png)
+![Image 2](./src/assets/image2.png)
+![Image 3](./src/assets/image3.png)
+![Image 4](./src/assets/image4.png)
 
-<div align="center">
-🖼️ Image 1
-<img src="./assets/image1.png" width="800"/>
-🖼️ Image 2
-<img src="./assets/image2.png" width="800"/>
-🖼️ Image 3
-<img src="./assets/image3.png" width="800"/>
-🖼️ Image 4
-<img src="./assets/image4.png" width="800"/> </div>
-🤝 Contributing
 
 Contributions are welcome!
 
