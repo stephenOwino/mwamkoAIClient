@@ -153,23 +153,14 @@ Tokens are saved in localStorage and validated on each API call.
 📸 Screenshots
 
 (Images will load once you upload them into the /assets folder.)
-![Image 1](./src/assets/image1.png)
-![Image 2](./src/assets/image2.png)
-![Image 3](./src/assets/image3.png)
-![Image 4](./src/assets/image4.png)
 
+<p align="center">
+  <img src="./src/assets/image1.png" width="1000" alt="Image 1" />
+  <img src="./src/assets/image2.png" width="1000" alt="Image 2" /><br><br>
+  <img src="./src/assets/image3.png" width="1000" alt="Image 3" />
+  <img src="./src/assets/image4.png" width="1000" alt="Image 4" />
+</p>
 
-Contributions are welcome!
-
-Fork the repository
-
-Create a new branch
-
-Make your updates
-
-Submit a pull request
-
-Please follow the existing coding style and commit message guidelines.
 
 
 📬 Contact
