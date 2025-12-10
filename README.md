@@ -26,7 +26,7 @@ Coordinators can approve users awaiting verification
 
 AI-powered route calculation for emergency response teams
 
-🔔 Real-Time Notifications
+### Real-Time Notifications
 
 Alerts for emergencies, push updates, and route completions
 
@@ -34,7 +34,7 @@ Alerts for emergencies, push updates, and route completions
 
 Modern, clean interface powered by Material UI
 
-🛠️ Technologies Used
+### Technologies Used
 Technology	Purpose
 React	UI components & SPA architecture
 Redux Toolkit	Global state management
@@ -43,11 +43,11 @@ React Router	Client-side navigation
 Toastify	Toast notifications
 Vite	Fast development environment
 JWT	Secure authentication
-🚀 Getting Started
+### Getting Started
 
 Follow the instructions below to run the project locally.
 
-✔️ Prerequisites
+### Prerequisites
 
 Before starting, ensure you have installed:
 
@@ -55,7 +55,7 @@ Node.js ≥ 16
 
 npm ≥ 7
 
-📦 Installation & Setup
+### Installation & Setup
 1. Clone the repository
 git clone https://github.com/your-username/mwamko-ai-client.git
 cd mwamko-ai-client
@@ -68,9 +68,9 @@ npm run dev
 
 
 Visit:
-👉 http://localhost:5173
+### http://localhost:5173
 
-🗂️ Project Structure
+### Project Structure
 src/
 ├── components/       # Reusable UI components (Header, Sidebar, etc.)
 ├── pages/            # Page-level components (Dashboard, Login, etc.)
@@ -80,7 +80,7 @@ src/
 ├── styles/           # Global styles
 └── utils/            # Shared utilities and helpers
 
-🧱 Key Components Overview
+### Key Components Overview
 Header.jsx
 
 Navigation bar with user profile, notifications, and role actions.
@@ -105,7 +105,7 @@ InviteUserPage.jsx
 
 Allows coordinators to invite new responders or admins.
 
-🔄 State Management – Redux Toolkit
+### State Management – Redux Toolkit
 
 MWAMKO AI uses Redux Toolkit slices for handling global app logic:
 
@@ -150,7 +150,7 @@ Route	Method	Description
 
 Tokens are saved in localStorage and validated on each API call.
 
-📸 Screenshots
+### Screenshots
 
 (Images will load once you upload them into the /assets folder.)
 
@@ -163,7 +163,7 @@ Tokens are saved in localStorage and validated on each API call.
 
 
 
-📬 Contact
+### Contact
 
 For inquiries or collaborations:
 

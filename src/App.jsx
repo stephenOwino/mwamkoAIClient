@@ -1,29 +1,28 @@
+// src/App.jsx
 import React from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import MwamkoHeader from './components/Header';
-import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
-import InviteUserPage from "./pages/InviteUserPage";
-import AcceptInvitePage from "./pages/AcceptInvitePage";
-import PendingUsersPage from "./pages/PendingUsersPage";
+import EmergencyCasesPage from "./pages/EmergencyCasesPage";
+import RoutesMapPage from "./pages/RoutesMapPage";
+import VehiclesPage from "./pages/VehiclesPage";
+import AIInsightsPage from "./pages/AIInsightsPage";
 import PrivateRoute from './components/PrivateRoute';
 import "./utils/debugUtils";
 
 const App = () => {
   return (
     <BrowserRouter>
-      <MwamkoHeader /> {/* This header will be always visible */}
+      <MwamkoHeader />
 
       <Routes>
-        {/* Public Routes */}
-        <Route path="/register" element={<RegisterPage />} />
+        {/* Public Route */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/accept-invite" element={<AcceptInvitePage />} />
         
-        {/* Private Routes - Protected */}
+        {/* Private Routes - Protected by JWT Token */}
         <Route 
           path="/dashboard" 
           element={
@@ -34,25 +33,43 @@ const App = () => {
         />
 
         <Route 
-          path="/invite-user" 
+          path="/emergency-cases" 
           element={
             <PrivateRoute>
-              <InviteUserPage />
+              <EmergencyCasesPage />
             </PrivateRoute>
           } 
         />
 
         <Route 
-          path="/pending-users" 
+          path="/routes" 
           element={
             <PrivateRoute>
-              <PendingUsersPage />
+              <RoutesMapPage />
             </PrivateRoute>
           } 
         />
 
-        {/* Default route that redirects to login */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route 
+          path="/vehicles" 
+          element={
+            <PrivateRoute>
+              <VehiclesPage />
+            </PrivateRoute>
+          } 
+        />
+
+        <Route 
+          path="/ai-insights" 
+          element={
+            <PrivateRoute>
+              <AIInsightsPage />
+            </PrivateRoute>
+          } 
+        />
+
+        {/* Default route redirects to dashboard if authenticated, otherwise login */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
 
       {/* Toast notifications */}
