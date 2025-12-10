@@ -14,23 +14,47 @@ const DashboardPage = () => {
   const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
+    console.log('🚀 Dashboard mounted, fetching data...');
     dispatch(getEmergencyCases());
     dispatch(getAllRoutes());
     dispatch(getVehicles());
   }, [dispatch]);
 
+  // Debug: Log what we receive
+  useEffect(() => {
+    console.log('📊 Dashboard received cases:', cases);
+    if (cases.length > 0) {
+      console.log('🔍 First case in dashboard:', cases[0]);
+      console.log('🔑 Available fields:', Object.keys(cases[0]));
+    }
+  }, [cases]);
+
   // Helper function to safely get values and filter out unknown/empty
   const safeValue = (value, fallback = null) => {
-    if (!value || value === 'Unknown' || value === 'UNKNOWN') return fallback;
+    if (!value || value === 'Unknown' || value === 'UNKNOWN' || value === '') return fallback;
     return value;
   };
 
   // Filter out cases with missing critical data
-  const validCases = cases.filter(c => 
-    safeValue(c.emergency_type) && 
-    safeValue(c.case_status) && 
-    safeValue(c.priority_level)
-  );
+  const validCases = cases.filter(c => {
+    const hasType = safeValue(c.emergency_type);
+    const hasStatus = safeValue(c.case_status);
+    const hasPriority = safeValue(c.priority_level);
+    
+    if (!hasType || !hasStatus || !hasPriority) {
+      console.log('⚠️ Invalid case filtered out:', {
+        case_id: c.case_id,
+        hasType,
+        hasStatus,
+        hasPriority,
+        rawCase: c
+      });
+    }
+    
+    return hasType && hasStatus && hasPriority;
+  });
+
+  console.log(`✅ Valid cases: ${validCases.length} / ${cases.length}`);
 
   const stats = {
     totalEmergencies: validCases.length,
@@ -46,6 +70,8 @@ const DashboardPage = () => {
     totalRoutes: routes.length,
     activeRoutes: routes.filter(r => r.status && r.status !== 'COMPLETED').length,
   };
+
+  console.log('📈 Dashboard stats:', stats);
 
   // Get emergency types (excluding Unknown)
   const emergencyTypes = [...new Set(
@@ -77,23 +103,31 @@ const DashboardPage = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <div className="bg-gradient-to-r from-black via-gray-900 to-black text-yellow-50 p-8 shadow-lg">
+      <div className="bg-[#fcf8d8] text-gray-800 p-8 shadow-lg border-b-4 border-gray-800">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-4xl font-bold mb-2">Dashboard Overview</h1>
-              <p className="text-lg opacity-90">Welcome back, {user?.full_name || 'User'}!</p>
-              <p className="text-sm opacity-70 mt-1">Real-time emergency response coordination</p>
+              <h1 className="text-4xl font-bold mb-2 text-gray-900">Dashboard Overview</h1>
+              <p className="text-lg text-gray-700">Welcome back, {user?.full_name || user?.email?.split('@')[0] || 'User'}!</p>
+              <p className="text-sm text-gray-600 mt-1">Real-time emergency response coordination</p>
             </div>
             <div className="text-right">
-              <p className="text-sm opacity-70">Last updated</p>
-              <p className="text-lg font-medium">{new Date().toLocaleString()}</p>
+              <p className="text-sm text-gray-600">Last updated</p>
+              <p className="text-lg font-medium text-gray-800">{new Date().toLocaleString()}</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto p-6">
+        {/* Debug Info (Remove in production) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 bg-blue-50 border border-blue-200 p-3 rounded text-xs">
+            <strong>🔧 Debug Info:</strong> Total cases: {cases.length} | Valid cases: {validCases.length} | 
+            Vehicles: {vehicles.length} | Routes: {routes.length}
+          </div>
+        )}
+
         {/* Data Quality Alert */}
         {cases.length > validCases.length && (
           <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
@@ -111,78 +145,78 @@ const DashboardPage = () => {
         {/* Quick Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           {/* Active Emergencies */}
-          <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-lg shadow-lg p-6 text-white hover:shadow-xl transition">
+          <div className="bg-[#fcf8d8] rounded-lg shadow-lg p-6 text-gray-800 hover:shadow-xl transition border-l-4 border-red-500">
             <div className="flex items-center justify-between mb-4">
-              <div className="bg-white bg-opacity-20 p-3 rounded-full">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-red-100 p-3 rounded-full">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
               <div className="text-right">
-                <p className="text-3xl font-bold">{stats.activeEmergencies}</p>
-                <p className="text-sm opacity-90">Active</p>
+                <p className="text-3xl font-bold text-red-600">{stats.activeEmergencies}</p>
+                <p className="text-sm text-gray-600">Active</p>
               </div>
             </div>
-            <h3 className="text-lg font-semibold">Emergency Cases</h3>
-            <p className="text-sm opacity-90">{stats.totalEmergencies} total cases</p>
+            <h3 className="text-lg font-semibold text-gray-800">Emergency Cases</h3>
+            <p className="text-sm text-gray-600">{stats.totalEmergencies} total cases</p>
           </div>
 
           {/* High Priority */}
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg p-6 text-white hover:shadow-xl transition">
+          <div className="bg-[#fcf8d8] rounded-lg shadow-lg p-6 text-gray-800 hover:shadow-xl transition border-l-4 border-orange-500">
             <div className="flex items-center justify-between mb-4">
-              <div className="bg-white bg-opacity-20 p-3 rounded-full">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-orange-100 p-3 rounded-full">
+                <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
               <div className="text-right">
-                <p className="text-3xl font-bold">{stats.highPriority}</p>
-                <p className="text-sm opacity-90">Critical</p>
+                <p className="text-3xl font-bold text-orange-600">{stats.highPriority}</p>
+                <p className="text-sm text-gray-600">Critical</p>
               </div>
             </div>
-            <h3 className="text-lg font-semibold">High Priority</h3>
-            <p className="text-sm opacity-90">Requires immediate attention</p>
+            <h3 className="text-lg font-semibold text-gray-800">High Priority</h3>
+            <p className="text-sm text-gray-600">Requires immediate attention</p>
           </div>
 
           {/* Available Vehicles */}
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white hover:shadow-xl transition">
+          <div className="bg-[#fcf8d8] rounded-lg shadow-lg p-6 text-gray-800 hover:shadow-xl transition border-l-4 border-green-500">
             <div className="flex items-center justify-between mb-4">
-              <div className="bg-white bg-opacity-20 p-3 rounded-full">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-green-100 p-3 rounded-full">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
                 </svg>
               </div>
               <div className="text-right">
-                <p className="text-3xl font-bold">{stats.availableVehicles}</p>
-                <p className="text-sm opacity-90">Available</p>
+                <p className="text-3xl font-bold text-green-600">{stats.availableVehicles}</p>
+                <p className="text-sm text-gray-600">Available</p>
               </div>
             </div>
-            <h3 className="text-lg font-semibold">Fleet Vehicles</h3>
-            <p className="text-sm opacity-90">{stats.totalVehicles} total vehicles</p>
+            <h3 className="text-lg font-semibold text-gray-800">Fleet Vehicles</h3>
+            <p className="text-sm text-gray-600">{stats.totalVehicles} total vehicles</p>
           </div>
 
           {/* Active Routes */}
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white hover:shadow-xl transition">
+          <div className="bg-[#fcf8d8] rounded-lg shadow-lg p-6 text-gray-800 hover:shadow-xl transition border-l-4 border-blue-500">
             <div className="flex items-center justify-between mb-4">
-              <div className="bg-white bg-opacity-20 p-3 rounded-full">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-blue-100 p-3 rounded-full">
+                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                 </svg>
               </div>
               <div className="text-right">
-                <p className="text-3xl font-bold">{stats.activeRoutes}</p>
-                <p className="text-sm opacity-90">Active</p>
+                <p className="text-3xl font-bold text-blue-600">{stats.activeRoutes}</p>
+                <p className="text-sm text-gray-600">Active</p>
               </div>
             </div>
-            <h3 className="text-lg font-semibold">Calculated Routes</h3>
-            <p className="text-sm opacity-90">{stats.totalRoutes} total routes</p>
+            <h3 className="text-lg font-semibold text-gray-800">Calculated Routes</h3>
+            <p className="text-sm text-gray-600">{stats.totalRoutes} total routes</p>
           </div>
         </div>
 
         {/* Recent Activities */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 bg-white rounded-lg shadow-lg">
-            <div className="bg-black text-yellow-50 p-4 rounded-t-lg">
+            <div className="bg-[#fcf8d8] text-gray-800 p-4 rounded-t-lg border-b-2 border-gray-300">
               <h2 className="text-xl font-bold flex items-center gap-2">
                 <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -202,7 +236,7 @@ const DashboardPage = () => {
                 </div>
               ) : (
                 recentActivities.map(activity => (
-                  <div key={activity.id} className="p-4 hover:bg-gray-50 transition">
+                  <div key={activity.id} className="p-4 hover:bg-gray-50 transition cursor-pointer">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -251,7 +285,7 @@ const DashboardPage = () => {
           <div className="space-y-6">
             {/* Emergency Types */}
             <div className="bg-white rounded-lg shadow-lg">
-              <div className="bg-black text-yellow-50 p-4 rounded-t-lg">
+              <div className="bg-[#fcf8d8] text-gray-800 p-4 rounded-t-lg border-b-2 border-gray-300">
                 <h2 className="text-xl font-bold">Emergency Types</h2>
               </div>
 
@@ -289,7 +323,7 @@ const DashboardPage = () => {
 
             {/* Vehicle Status */}
             <div className="bg-white rounded-lg shadow-lg">
-              <div className="bg-black text-yellow-50 p-4 rounded-t-lg">
+              <div className="bg-[#fcf8d8] text-gray-800 p-4 rounded-t-lg border-b-2 border-gray-300">
                 <h2 className="text-xl font-bold">Vehicle Fleet Status</h2>
               </div>
 

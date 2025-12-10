@@ -2,6 +2,28 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import emergencyCaseService from '../services/emergencyCaseService';
 
+// Helper function to normalize case data from API
+const normalizeCase = (apiCase) => {
+  console.log('🔄 Normalizing case:', apiCase);
+  
+  return {
+    // Keep original fields
+    ...apiCase,
+    
+    // Normalize field names to match what Dashboard expects
+    case_id: apiCase.case_id || apiCase.id,
+    emergency_type: apiCase.emergency_type || apiCase.disaster_type || apiCase.type,
+    case_status: apiCase.case_status || apiCase.status,
+    priority_level: apiCase.priority_level || apiCase.severity || apiCase.priority,
+    created_at: apiCase.created_at || apiCase.timestamp || new Date().toISOString(),
+    
+    // Keep both naming conventions for compatibility
+    disaster_type: apiCase.disaster_type || apiCase.emergency_type,
+    status: apiCase.status || apiCase.case_status,
+    severity: apiCase.severity || apiCase.priority_level,
+  };
+};
+
 // Async Thunk for creating emergency case
 export const createEmergencyCase = createAsyncThunk(
   'emergencyCase/createEmergencyCase',
@@ -33,9 +55,20 @@ export const getEmergencyCases = createAsyncThunk(
       const { auth } = getState();
       const token = auth.token;
 
+      console.log('📡 Fetching emergency cases...');
       const response = await emergencyCaseService.getEmergencyCases(token, filters);
+      
+      console.log('📦 Raw API response:', response);
+      console.log('📊 Number of cases received:', Array.isArray(response) ? response.length : 'Not an array');
+      
+      if (Array.isArray(response) && response.length > 0) {
+        console.log('🔍 First case structure:', response[0]);
+        console.log('🔑 Keys in first case:', Object.keys(response[0]));
+      }
+      
       return response;
     } catch (error) {
+      console.error('❌ Fetch cases error:', error);
       return rejectWithValue(error.message);
     }
   }
@@ -91,14 +124,14 @@ const emergencyCaseSlice = createSlice({
         console.log('✅ Case created, payload:', action.payload);
         
         // The API might return the case in different formats
-        // Check if it's nested in a 'case' property or directly returned
         const newCase = action.payload.case || action.payload;
         
-        if (newCase && newCase.case_id) {
-          console.log('➕ Adding case to state:', newCase);
-          state.cases.unshift(newCase);
+        if (newCase && (newCase.case_id || newCase.id)) {
+          const normalizedCase = normalizeCase(newCase);
+          console.log('➕ Adding normalized case to state:', normalizedCase);
+          state.cases.unshift(normalizedCase);
         } else {
-          console.warn('⚠️ No case data in response:', action.payload);
+          console.warn('⚠️ No valid case data in response:', action.payload);
         }
       })
       .addCase(createEmergencyCase.rejected, (state, action) => {
@@ -113,14 +146,26 @@ const emergencyCaseSlice = createSlice({
       })
       .addCase(getEmergencyCases.fulfilled, (state, action) => {
         state.loading = false;
-        state.cases = action.payload || [];
         state.error = null;
         
-        console.log('📋 Cases loaded:', state.cases.length);
+        // Normalize all cases
+        if (Array.isArray(action.payload)) {
+          state.cases = action.payload.map(normalizeCase);
+          console.log('📋 Cases loaded and normalized:', state.cases.length);
+          
+          if (state.cases.length > 0) {
+            console.log('✅ First normalized case:', state.cases[0]);
+            console.log('🔑 Normalized case keys:', Object.keys(state.cases[0]));
+          }
+        } else {
+          console.warn('⚠️ API response is not an array:', action.payload);
+          state.cases = [];
+        }
       })
       .addCase(getEmergencyCases.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        console.error('❌ Failed to load cases:', action.payload);
       });
   },
 });

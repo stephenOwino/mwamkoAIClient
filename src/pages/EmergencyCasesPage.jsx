@@ -16,7 +16,6 @@ import {
   TextField,
   MenuItem,
   Dialog,
-  DialogContent,
   Stack,
   Divider,
 } from '@mui/material';
@@ -36,14 +35,14 @@ import CreateCaseDialog from '../components/CreateCaseDialog';
 import { toast } from 'react-toastify';
 
 const STATUS_CONFIG = {
-  PENDING: { label: 'Pending', color: '#ff9800', bg: '#fff3e0' },
-  ASSIGNED: { label: 'Assigned', color: '#2196f3', bg: '#e3f2fd' },
-  IN_PROGRESS: { label: 'In Progress', color: '#9c27b0', bg: '#f3e5f5' },
-  RESOLVED: { label: 'Resolved', color: '#4caf50', bg: '#e8f5e9' },
+  PENDING: { label: 'Pending', color: '#ff9800', bg: '#fcf8d8' },
+  ASSIGNED: { label: 'Assigned', color: '#2196f3', bg: '#fcf8d8' },
+  IN_PROGRESS: { label: 'In Progress', color: '#9c27b0', bg: '#fcf8d8' },
+  RESOLVED: { label: 'Resolved', color: '#4caf50', bg: '#fcf8d8' },
 };
 
 const getStatusConfig = (status) => {
-  return STATUS_CONFIG[status] || { label: status || 'Unknown', color: '#757575', bg: '#f5f5f5' };
+  return STATUS_CONFIG[status] || { label: status || 'Unknown', color: '#757575', bg: '#fcf8d8' };
 };
 
 const EmergencyCasesPage = () => {
@@ -54,6 +53,10 @@ const EmergencyCasesPage = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCase, setSelectedCase] = useState(null);
+  const [localFilters, setLocalFilters] = useState({
+    status: '',
+    assigned: '',
+  });
 
   const canCreateCase = ['County Coordinator', 'Community Manager'].includes(user?.role);
 
@@ -71,26 +74,42 @@ const EmergencyCasesPage = () => {
   };
 
   const handleFilterChange = (filterName, value) => {
-    const newFilters = { ...filters, [filterName]: value || null };
-    dispatch(setFilters(newFilters));
-    dispatch(getEmergencyCases(newFilters));
+    setLocalFilters(prev => ({
+      ...prev,
+      [filterName]: value
+    }));
   };
+
+  const handleClearFilters = () => {
+    setLocalFilters({
+      status: '',
+      assigned: '',
+    });
+    dispatch(clearFilters());
+    dispatch(getEmergencyCases());
+  };
+
+  // Filter cases on the frontend based on local filters
+  const filteredCases = cases.filter(emergencyCase => {
+    if (localFilters.status && emergencyCase.status !== localFilters.status) {
+      return false;
+    }
+    if (localFilters.assigned === 'assigned' && !emergencyCase.assigned_team_id) {
+      return false;
+    }
+    if (localFilters.assigned === 'unassigned' && emergencyCase.assigned_team_id) {
+      return false;
+    }
+    return true;
+  });
 
   const formatDateTime = (dateString) => {
     if (!dateString) return { full: 'N/A', ago: 'N/A' };
     
-    console.log('📅 Formatting date:', dateString);
-    
     const date = new Date(dateString);
     const now = new Date();
     
-    console.log('📅 Parsed date:', date);
-    console.log('📅 Current time:', now);
-    console.log('📅 Is valid date:', !isNaN(date.getTime()));
-    
-    // Check if date is valid
     if (isNaN(date.getTime())) {
-      console.error('❌ Invalid date:', dateString);
       return { full: 'Invalid date', ago: 'Unknown' };
     }
     
@@ -98,8 +117,6 @@ const EmergencyCasesPage = () => {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-
-    console.log('📅 Time difference:', { diffMins, diffHours, diffDays });
 
     let timeAgo = '';
     if (diffMins < 1) timeAgo = 'Just now';
@@ -135,10 +152,11 @@ const EmergencyCasesPage = () => {
           flexDirection: 'column',
           position: 'relative',
           overflow: 'hidden',
-          borderRadius: 3,
+          borderRadius: { xs: 2, md: 3 },
+          bgcolor: '#fcf8d8',
           '&:hover': {
-            transform: 'translateY(-8px)',
-            boxShadow: '0 12px 24px rgba(0,0,0,0.15)',
+            transform: { xs: 'none', md: 'translateY(-4px)' },
+            boxShadow: { xs: 2, md: '0 8px 16px rgba(0,0,0,0.12)' },
           },
           '&::before': {
             content: '""',
@@ -151,11 +169,18 @@ const EmergencyCasesPage = () => {
           },
         }}
       >
-        <CardContent sx={{ flexGrow: 1, pl: 3 }}>
-          <Stack spacing={2.5}>
-            {/* Header */}
+        <CardContent sx={{ flexGrow: 1, pl: { xs: 2.5, md: 3 }, p: { xs: 2, md: 3 } }}>
+          <Stack spacing={{ xs: 2, md: 2.5 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" gap={2}>
-              <Typography variant="h5" fontWeight={800} sx={{ color: '#000', letterSpacing: '-0.5px' }}>
+              <Typography 
+                variant="h5" 
+                fontWeight={800} 
+                sx={{ 
+                  color: '#000', 
+                  letterSpacing: '-0.5px',
+                  fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem' }
+                }}
+              >
                 Case #{emergencyCase.case_id}
               </Typography>
               <Chip
@@ -164,88 +189,125 @@ const EmergencyCasesPage = () => {
                   bgcolor: status.color,
                   color: '#fff',
                   fontWeight: 700,
-                  fontSize: '0.75rem',
-                  height: 28,
+                  fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem' },
+                  height: { xs: 22, sm: 24, md: 28 },
                   borderRadius: 2,
                   '& .MuiChip-label': {
-                    px: 1.5,
+                    px: { xs: 0.75, sm: 1, md: 1.5 },
                   }
                 }}
               />
             </Box>
 
-            {/* Subtitle */}
-            <Typography variant="body2" color="text.secondary" fontWeight={500}>
+            <Typography 
+              variant="body2" 
+              color="text.secondary" 
+              fontWeight={500}
+              sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem', md: '0.875rem' } }}
+            >
               Emergency Report
             </Typography>
 
-            <Divider sx={{ my: 1 }} />
+            <Divider sx={{ my: { xs: 0.5, md: 1 } }} />
 
-            {/* Reporter */}
-            <Box display="flex" alignItems="center" gap={1.5}>
+            <Box display="flex" alignItems="center" gap={{ xs: 1, md: 1.5 }}>
               <Box
                 sx={{
-                  bgcolor: 'grey.100',
+                  bgcolor: 'rgba(0,0,0,0.05)',
                   borderRadius: 2,
-                  p: 1,
+                  p: { xs: 0.75, md: 1 },
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Person sx={{ fontSize: 20, color: 'grey.700' }} />
+                <Person sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, color: 'grey.700' }} />
               </Box>
               <Box flex={1}>
-                <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">
+                <Typography 
+                  variant="caption" 
+                  color="text.secondary" 
+                  fontWeight={600} 
+                  display="block"
+                  sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem', md: '0.75rem' } }}
+                >
                   Reported by
                 </Typography>
-                <Typography variant="body2" fontWeight={700} sx={{ color: '#000' }}>
+                <Typography 
+                  variant="body2" 
+                  fontWeight={700} 
+                  sx={{ 
+                    color: '#000',
+                    fontSize: { xs: '0.75rem', sm: '0.8rem', md: '0.875rem' }
+                  }}
+                >
                   User #{emergencyCase.reported_by || 'Unknown'}
                 </Typography>
               </Box>
             </Box>
 
-            {/* Assigned Team */}
             {emergencyCase.assigned_team_id && (
-              <Box display="flex" alignItems="center" gap={1.5}>
+              <Box display="flex" alignItems="center" gap={{ xs: 1, md: 1.5 }}>
                 <Box
                   sx={{
-                    bgcolor: 'success.50',
+                    bgcolor: 'rgba(76, 175, 80, 0.1)',
                     borderRadius: 2,
-                    p: 1,
+                    p: { xs: 0.75, md: 1 },
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <CheckCircle sx={{ fontSize: 20, color: 'success.main' }} />
+                  <CheckCircle sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, color: 'success.main' }} />
                 </Box>
                 <Box flex={1}>
-                  <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">
+                  <Typography 
+                    variant="caption" 
+                    color="text.secondary" 
+                    fontWeight={600} 
+                    display="block"
+                    sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem', md: '0.75rem' } }}
+                  >
                     Assigned to
                   </Typography>
-                  <Typography variant="body2" fontWeight={700} sx={{ color: 'success.dark' }}>
+                  <Typography 
+                    variant="body2" 
+                    fontWeight={700} 
+                    sx={{ 
+                      color: 'success.dark',
+                      fontSize: { xs: '0.75rem', sm: '0.8rem', md: '0.875rem' }
+                    }}
+                  >
                     Team #{emergencyCase.assigned_team_id}
                   </Typography>
                 </Box>
               </Box>
             )}
 
-            {/* Footer - Time */}
             <Box 
               display="flex" 
               alignItems="center" 
               justifyContent="space-between"
-              pt={1}
+              pt={{ xs: 0.5, md: 1 }}
               mt="auto"
             >
               <Box display="flex" alignItems="center" gap={0.5}>
-                <AccessTime sx={{ fontSize: 18, color: status.color }} />
-                <Typography variant="body2" color={status.color} fontWeight={700}>
+                <AccessTime sx={{ fontSize: { xs: 14, sm: 16, md: 18 }, color: status.color }} />
+                <Typography 
+                  variant="body2" 
+                  color={status.color} 
+                  fontWeight={700}
+                  sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' } }}
+                >
                   {dateTime.ago}
                 </Typography>
               </Box>
-              <Typography variant="caption" color="text.secondary" fontWeight={600}>
+              <Typography 
+                variant="caption" 
+                color="text.secondary" 
+                fontWeight={600}
+                sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem', md: '0.75rem' } }}
+              >
                 {dateTime.full.split(',')[0]}
               </Typography>
             </Box>
@@ -267,15 +329,29 @@ const EmergencyCasesPage = () => {
         onClose={() => setSelectedCase(null)}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            m: { xs: 2, sm: 3 },
+          }
+        }}
       >
-        <Box sx={{ p: 3 }}>
-          {/* Header */}
-          <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
+          <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={{ xs: 2, sm: 3 }}>
             <Box flex={1}>
-              <Typography variant="h4" fontWeight={700} gutterBottom>
+              <Typography 
+                variant="h4" 
+                fontWeight={700} 
+                gutterBottom
+                sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}
+              >
                 Case #{selectedCase.case_id}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography 
+                variant="body2" 
+                color="text.secondary"
+                sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+              >
                 Emergency Case Details
               </Typography>
             </Box>
@@ -284,71 +360,110 @@ const EmergencyCasesPage = () => {
             </IconButton>
           </Box>
 
-          <Divider sx={{ mb: 3 }} />
+          <Divider sx={{ mb: { xs: 2, sm: 3 } }} />
 
-          {/* Status Badge */}
           <Paper
             elevation={0}
             sx={{
-              p: 3,
-              mb: 3,
-              bgcolor: status.bg,
+              p: { xs: 2, sm: 3 },
+              mb: { xs: 2, sm: 3 },
+              bgcolor: '#fcf8d8',
               border: `2px solid ${status.color}`,
               borderRadius: 2,
               textAlign: 'center',
             }}
           >
-            <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" mb={1}>
+            <Typography 
+              variant="caption" 
+              color="text.secondary" 
+              fontWeight={600} 
+              display="block" 
+              mb={1}
+              sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+            >
               CURRENT STATUS
             </Typography>
-            <Typography variant="h4" fontWeight={700} color={status.color}>
+            <Typography 
+              variant="h4" 
+              fontWeight={700} 
+              color={status.color}
+              sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}
+            >
               {status.label}
             </Typography>
           </Paper>
 
-          {/* Content Sections */}
-          <Stack spacing={3}>
-            {/* Reporter Information */}
+          <Stack spacing={{ xs: 2, sm: 3 }}>
             <Box>
               <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                <Person sx={{ fontSize: 22, color: 'primary.main' }} />
-                <Typography variant="h6" fontWeight={700}>
+                <Person sx={{ fontSize: { xs: 20, sm: 22 }, color: '#000' }} />
+                <Typography 
+                  variant="h6" 
+                  fontWeight={700}
+                  sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
+                >
                   Reporter Information
                 </Typography>
               </Box>
-              <Paper elevation={0} sx={{ p: 2.5, bgcolor: 'grey.50', borderRadius: 2 }}>
-                <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" mb={0.5}>
+              <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, bgcolor: '#fcf8d8', borderRadius: 2 }}>
+                <Typography 
+                  variant="caption" 
+                  color="text.secondary" 
+                  fontWeight={600} 
+                  display="block" 
+                  mb={0.5}
+                  sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                >
                   REPORTED BY
                 </Typography>
-                <Typography variant="h6" fontWeight={600}>
+                <Typography 
+                  variant="h6" 
+                  fontWeight={600}
+                  sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
+                >
                   {selectedCase.reported_by || 'Unknown'}
                 </Typography>
               </Paper>
             </Box>
 
-            {/* Assigned Team */}
             {selectedCase.assigned_team_id ? (
               <Box>
                 <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                  <CheckCircle sx={{ fontSize: 22, color: 'success.main' }} />
-                  <Typography variant="h6" fontWeight={700}>
+                  <CheckCircle sx={{ fontSize: { xs: 20, sm: 22 }, color: 'success.main' }} />
+                  <Typography 
+                    variant="h6" 
+                    fontWeight={700}
+                    sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
+                  >
                     Response Team
                   </Typography>
                 </Box>
                 <Paper
                   elevation={0}
                   sx={{
-                    p: 2.5,
-                    bgcolor: 'success.50',
+                    p: { xs: 2, sm: 2.5 },
+                    bgcolor: '#fcf8d8',
                     border: '2px solid',
                     borderColor: 'success.main',
                     borderRadius: 2,
                   }}
                 >
-                  <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" mb={0.5}>
+                  <Typography 
+                    variant="caption" 
+                    color="text.secondary" 
+                    fontWeight={600} 
+                    display="block" 
+                    mb={0.5}
+                    sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                  >
                     ASSIGNED TEAM
                   </Typography>
-                  <Typography variant="h6" fontWeight={700} color="success.dark">
+                  <Typography 
+                    variant="h6" 
+                    fontWeight={700} 
+                    color="success.dark"
+                    sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
+                  >
                     Team #{selectedCase.assigned_team_id}
                   </Typography>
                 </Paper>
@@ -356,47 +471,87 @@ const EmergencyCasesPage = () => {
             ) : (
               <Box>
                 <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                  <Badge sx={{ fontSize: 22, color: 'text.secondary' }} />
-                  <Typography variant="h6" fontWeight={700}>
+                  <Badge sx={{ fontSize: { xs: 20, sm: 22 }, color: 'text.secondary' }} />
+                  <Typography 
+                    variant="h6" 
+                    fontWeight={700}
+                    sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
+                  >
                     Response Team
                   </Typography>
                 </Box>
-                <Paper elevation={0} sx={{ p: 2.5, bgcolor: 'grey.50', borderRadius: 2 }}>
-                  <Typography variant="body2" color="text.secondary" fontStyle="italic">
+                <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, bgcolor: '#fcf8d8', borderRadius: 2 }}>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary" 
+                    fontStyle="italic"
+                    sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                  >
                     No team assigned yet
                   </Typography>
                 </Paper>
               </Box>
             )}
 
-            {/* Timestamp */}
             <Box>
               <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                <AccessTime sx={{ fontSize: 22, color: 'text.secondary' }} />
-                <Typography variant="h6" fontWeight={700}>
+                <AccessTime sx={{ fontSize: { xs: 20, sm: 22 }, color: 'text.secondary' }} />
+                <Typography 
+                  variant="h6" 
+                  fontWeight={700}
+                  sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
+                >
                   Timeline
                 </Typography>
               </Box>
-              <Paper elevation={0} sx={{ p: 2.5, bgcolor: 'grey.50', borderRadius: 2 }}>
-                <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" mb={0.5}>
+              <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, bgcolor: '#fcf8d8', borderRadius: 2 }}>
+                <Typography 
+                  variant="caption" 
+                  color="text.secondary" 
+                  fontWeight={600} 
+                  display="block" 
+                  mb={0.5}
+                  sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                >
                   CREATED ON
                 </Typography>
-                <Typography variant="body1" fontWeight={600} gutterBottom>
+                <Typography 
+                  variant="body1" 
+                  fontWeight={600} 
+                  gutterBottom
+                  sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
+                >
                   {dateTime.full}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography 
+                  variant="body2" 
+                  color="text.secondary"
+                  sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                >
                   {dateTime.ago}
                 </Typography>
               </Paper>
             </Box>
           </Stack>
 
-          {/* Actions */}
-          <Box display="flex" justifyContent="flex-end" gap={2} mt={4}>
+          <Box 
+            display="flex" 
+            flexDirection={{ xs: 'column', sm: 'row' }}
+            justifyContent="flex-end" 
+            gap={2} 
+            mt={{ xs: 3, sm: 4 }}
+          >
             <Button
               onClick={() => setSelectedCase(null)}
               variant="outlined"
               size="large"
+              fullWidth={true}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 600,
+                display: { xs: 'block', sm: 'inline-flex' },
+              }}
             >
               Close
             </Button>
@@ -404,7 +559,18 @@ const EmergencyCasesPage = () => {
               <Button
                 variant="contained"
                 size="large"
-                color="primary"
+                fullWidth={true}
+                sx={{
+                  bgcolor: '#000',
+                  color: '#fcf8d8',
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  display: { xs: 'block', sm: 'inline-flex' },
+                  '&:hover': {
+                    bgcolor: '#333',
+                  }
+                }}
               >
                 Update Status
               </Button>
@@ -416,47 +582,70 @@ const EmergencyCasesPage = () => {
   };
 
   return (
-    <Box sx={{ minHeight: 'calc(100vh - 64px)', bgcolor: '#fafafa', py: { xs: 3, md: 4 } }}>
+    <Box sx={{ minHeight: 'calc(100vh - 64px)', bgcolor: '#f5f5f5', py: { xs: 2, md: 4 } }}>
       <Container maxWidth="xl">
-        {/* Header */}
-        <Stack spacing={{ xs: 2, md: 3 }} mb={{ xs: 3, md: 4 }}>
+        <Stack spacing={{ xs: 2, md: 3 }} mb={{ xs: 2, md: 4 }}>
           <Box 
             display="flex" 
             justifyContent="space-between" 
-            alignItems={{ xs: 'flex-start', md: 'center' }} 
-            flexDirection={{ xs: 'column', md: 'row' }}
-            gap={2}
+            alignItems={{ xs: 'flex-start', sm: 'center' }} 
+            flexDirection={{ xs: 'column', sm: 'row' }}
+            gap={{ xs: 2, sm: 0 }}
           >
-            <Box display="flex" alignItems="center" gap={2}>
+            <Box display="flex" alignItems="center" gap={{ xs: 1.5, md: 2 }}>
               <Box
                 sx={{
-                  bgcolor: 'error.main',
-                  borderRadius: 3,
-                  p: 1.5,
+                  bgcolor: '#fcf8d8',
+                  borderRadius: { xs: 2, md: 3 },
+                  p: { xs: 1, md: 1.5 },
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  border: '2px solid #000',
                 }}
               >
-                <Warning sx={{ fontSize: 36, color: 'white' }} />
+                <Warning sx={{ fontSize: { xs: 28, md: 36 }, color: '#000' }} />
               </Box>
               <Box>
-                <Typography variant="h4" fontWeight={800} sx={{ letterSpacing: '-0.5px' }}>
+                <Typography 
+                  variant="h4" 
+                  fontWeight={800} 
+                  sx={{ 
+                    letterSpacing: '-0.5px', 
+                    color: '#000',
+                    fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
+                  }}
+                >
                   Emergency Cases
                 </Typography>
-                <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                <Typography 
+                  variant="body2" 
+                  color="text.secondary" 
+                  fontWeight={500}
+                  sx={{ 
+                    display: { xs: 'none', sm: 'block' },
+                    fontSize: { xs: '0.8rem', md: '0.875rem' }
+                  }}
+                >
                   Taita Taveta County Emergency Response System
                 </Typography>
               </Box>
             </Box>
 
-            <Stack direction="row" spacing={1} flexShrink={0}>
+            <Stack 
+              direction="row" 
+              spacing={1} 
+              flexShrink={0}
+              width={{ xs: '100%', sm: 'auto' }}
+            >
               <IconButton
                 onClick={() => setShowFilters(!showFilters)}
                 sx={{ 
-                  bgcolor: showFilters ? 'warning.100' : 'white',
-                  '&:hover': { bgcolor: showFilters ? 'warning.200' : 'grey.100' },
+                  bgcolor: showFilters ? '#fcf8d8' : 'white',
+                  '&:hover': { bgcolor: showFilters ? '#f4edc4' : '#f5f5f5' },
                   boxShadow: 1,
+                  border: showFilters ? '2px solid #000' : 'none',
+                  flex: { xs: 1, sm: 0 },
                 }}
               >
                 <FilterList />
@@ -466,8 +655,9 @@ const EmergencyCasesPage = () => {
                 disabled={loading} 
                 sx={{ 
                   bgcolor: 'white',
-                  '&:hover': { bgcolor: 'grey.100' },
+                  '&:hover': { bgcolor: '#f5f5f5' },
                   boxShadow: 1,
+                  flex: { xs: 1, sm: 0 },
                 }}
               >
                 <Refresh />
@@ -477,13 +667,19 @@ const EmergencyCasesPage = () => {
                   variant="contained"
                   startIcon={<Add />}
                   onClick={() => setCreateDialogOpen(true)}
-                  color="error"
+                  fullWidth
                   sx={{
-                    px: 3,
+                    px: { xs: 2, sm: 3 },
                     borderRadius: 2,
                     textTransform: 'none',
                     fontWeight: 700,
                     boxShadow: 2,
+                    bgcolor: '#000',
+                    color: '#fcf8d8',
+                    flex: { xs: 2, sm: 0 },
+                    '&:hover': {
+                      bgcolor: '#333',
+                    }
                   }}
                 >
                   <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
@@ -497,13 +693,13 @@ const EmergencyCasesPage = () => {
             </Stack>
           </Box>
 
-          {/* Filters */}
           {showFilters && (
             <Paper 
               elevation={2} 
               sx={{ 
                 p: { xs: 2, md: 3 },
-                borderRadius: 3,
+                borderRadius: { xs: 2, md: 3 },
+                bgcolor: '#fcf8d8',
               }}
             >
               <Grid container spacing={2}>
@@ -513,9 +709,10 @@ const EmergencyCasesPage = () => {
                     fullWidth
                     size="small"
                     label="Status"
-                    value={filters.status || ''}
+                    value={localFilters.status}
                     onChange={(e) => handleFilterChange('status', e.target.value)}
                     sx={{
+                      bgcolor: 'white',
                       '& .MuiOutlinedInput-root': {
                         borderRadius: 2,
                       }
@@ -540,18 +737,41 @@ const EmergencyCasesPage = () => {
                   </TextField>
                 </Grid>
                 <Grid item xs={12} sm={6} md={4}>
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    label="Assignment"
+                    value={localFilters.assigned}
+                    onChange={(e) => handleFilterChange('assigned', e.target.value)}
+                    sx={{
+                      bgcolor: 'white',
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                      }
+                    }}
+                  >
+                    <MenuItem value="">All Cases</MenuItem>
+                    <MenuItem value="assigned">Assigned Cases</MenuItem>
+                    <MenuItem value="unassigned">Unassigned Cases</MenuItem>
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} sm={12} md={4}>
                   <Button
                     fullWidth
                     variant="outlined"
-                    onClick={() => {
-                      dispatch(clearFilters());
-                      dispatch(getEmergencyCases());
-                    }}
+                    onClick={handleClearFilters}
                     sx={{
                       borderRadius: 2,
                       textTransform: 'none',
                       fontWeight: 600,
                       height: 40,
+                      borderColor: '#000',
+                      color: '#000',
+                      '&:hover': {
+                        borderColor: '#000',
+                        bgcolor: 'rgba(0,0,0,0.04)',
+                      }
                     }}
                   >
                     Clear Filters
@@ -561,91 +781,117 @@ const EmergencyCasesPage = () => {
             </Paper>
           )}
 
-          {/* Stats */}
-          <Stack direction="row" spacing={{ xs: 1, sm: 2 }} flexWrap="wrap" gap={{ xs: 1, sm: 0 }}>
+          <Stack 
+            direction="row" 
+            spacing={{ xs: 1, sm: 2 }} 
+            flexWrap="wrap" 
+            useFlexGap
+            sx={{
+              '& > *': {
+                mb: { xs: 1, sm: 0 }
+              }
+            }}
+          >
             <Chip 
-              label={`${cases.length} Total`} 
+              label={`${filteredCases.length} Total`} 
               sx={{ 
-                bgcolor: 'grey.900', 
-                color: 'white', 
+                bgcolor: '#000', 
+                color: '#fcf8d8', 
                 fontWeight: 700,
-                height: 36,
-                fontSize: '0.9rem',
-                '& .MuiChip-label': { px: 2 },
+                height: { xs: 32, sm: 36 },
+                fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                '& .MuiChip-label': { px: { xs: 1.5, sm: 2 } },
               }} 
             />
             <Chip
-              label={`${cases.filter(c => c.status === 'PENDING').length} Pending`}
+              label={`${filteredCases.filter(c => c.status === 'PENDING').length} Pending`}
               sx={{ 
-                bgcolor: 'warning.main', 
+                bgcolor: '#ff9800', 
                 color: 'white', 
                 fontWeight: 700,
-                height: 36,
-                fontSize: '0.9rem',
-                '& .MuiChip-label': { px: 2 },
+                height: { xs: 32, sm: 36 },
+                fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                '& .MuiChip-label': { px: { xs: 1.5, sm: 2 } },
               }}
             />
             <Chip
-              label={`${cases.filter(c => c.assigned_team_id).length} Assigned`}
+              label={`${filteredCases.filter(c => c.assigned_team_id).length} Assigned`}
               sx={{ 
-                bgcolor: 'info.main', 
+                bgcolor: '#2196f3', 
                 color: 'white', 
                 fontWeight: 700,
-                height: 36,
-                fontSize: '0.9rem',
-                '& .MuiChip-label': { px: 2 },
+                height: { xs: 32, sm: 36 },
+                fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                '& .MuiChip-label': { px: { xs: 1.5, sm: 2 } },
               }}
             />
             <Chip
-              label={`${cases.filter(c => c.status === 'RESOLVED').length} Resolved`}
+              label={`${filteredCases.filter(c => c.status === 'RESOLVED').length} Resolved`}
               sx={{ 
-                bgcolor: 'success.main', 
+                bgcolor: '#4caf50', 
                 color: 'white', 
                 fontWeight: 700,
-                height: 36,
-                fontSize: '0.9rem',
-                '& .MuiChip-label': { px: 2 },
+                height: { xs: 32, sm: 36 },
+                fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                '& .MuiChip-label': { px: { xs: 1.5, sm: 2 } },
               }}
             />
           </Stack>
         </Stack>
 
-        {/* Cases Grid */}
         {loading && cases.length === 0 ? (
-          <Box display="flex" justifyContent="center" py={8}>
-            <CircularProgress size={48} />
+          <Box display="flex" justifyContent="center" py={{ xs: 6, md: 8 }}>
+            <CircularProgress size={{ xs: 40, md: 48 }} sx={{ color: '#000' }} />
           </Box>
-        ) : cases.length === 0 ? (
+        ) : filteredCases.length === 0 ? (
           <Paper 
             elevation={2}
             sx={{ 
-              p: 8, 
+              p: { xs: 4, md: 8 }, 
               textAlign: 'center',
-              borderRadius: 3,
-              bgcolor: 'white',
+              borderRadius: { xs: 2, md: 3 },
+              bgcolor: '#fcf8d8',
             }}
           >
-            <Warning sx={{ fontSize: 100, color: 'grey.300', mb: 3 }} />
-            <Typography variant="h5" fontWeight={700} gutterBottom>
+            <Warning sx={{ fontSize: { xs: 80, md: 100 }, color: 'grey.400', mb: { xs: 2, md: 3 } }} />
+            <Typography 
+              variant="h5" 
+              fontWeight={700} 
+              gutterBottom
+              sx={{ fontSize: { xs: '1.25rem', md: '1.5rem' } }}
+            >
               No Emergency Cases
             </Typography>
-            <Typography variant="body1" color="text.secondary" mb={4} maxWidth={400} mx="auto">
-              {canCreateCase ? 'Report an emergency to get started.' : 'No cases to display at the moment.'}
+            <Typography 
+              variant="body1" 
+              color="text.secondary" 
+              mb={{ xs: 3, md: 4 }} 
+              maxWidth={400} 
+              mx="auto"
+              sx={{ fontSize: { xs: '0.875rem', md: '1rem' } }}
+            >
+              {cases.length === 0 
+                ? (canCreateCase ? 'Report an emergency to get started.' : 'No cases to display at the moment.')
+                : 'No cases match your current filters. Try adjusting the filters.'}
             </Typography>
             {canCreateCase && (
               <Button
                 variant="contained"
                 startIcon={<Add />}
                 onClick={() => setCreateDialogOpen(true)}
-                color="error"
                 size="large"
                 sx={{
-                  px: 4,
-                  py: 1.5,
+                  px: { xs: 3, md: 4 },
+                  py: { xs: 1, md: 1.5 },
                   borderRadius: 2,
                   textTransform: 'none',
-                  fontSize: '1rem',
+                  fontSize: { xs: '0.9rem', md: '1rem' },
                   fontWeight: 700,
+                  bgcolor: '#000',
+                  color: '#fcf8d8',
+                  '&:hover': {
+                    bgcolor: '#333',
+                  }
                 }}
               >
                 Report Emergency
@@ -653,9 +899,9 @@ const EmergencyCasesPage = () => {
             )}
           </Paper>
         ) : (
-          <Grid container spacing={{ xs: 2, sm: 3, md: 3 }}>
-            {cases.map((emergencyCase) => (
-              <Grid item xs={12} sm={6} lg={4} key={emergencyCase.case_id}>
+          <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
+            {filteredCases.map((emergencyCase) => (
+              <Grid item xs={6} sm={6} lg={4} key={emergencyCase.case_id}>
                 <CaseCard emergencyCase={emergencyCase} />
               </Grid>
             ))}
